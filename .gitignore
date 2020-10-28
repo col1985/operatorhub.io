@@ -39,3 +39,7 @@ manifest.yaml
 
 # CI tooling
 /bin/*
+
+# custom
+get-operators-curl.sh
+operators.json

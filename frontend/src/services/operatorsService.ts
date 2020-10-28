@@ -4,15 +4,19 @@ import { PENDING_ACTION, FULFILLED_ACTION, REJECTED_ACTION } from '../common/hel
 import { reduxConstants } from '../redux/constants';
 import { IDispatch } from '../redux';
 
-const serverHost = process.env.DEV_HOST || 'https://dev.operatorhub.io';
+const serverHost = process.env.DEV_HOST || 'https://hubdev.gaiax-cloud.org';
 const serverPort = process.env.DEV_PORT;
 const serverURL = serverPort ? `${serverHost}:${serverPort}` : serverHost;
 
-const allOperatorsRequest = process.env.DEV_MODE ? `${serverURL}/api/operators` : `/api/operators`;
-const operatorRequest = process.env.DEV_MODE ? `${serverURL}/api/operator` : `/api/operator`;
+const allOperatorsRequest = process.env.DEV_MODE ? `${serverURL}` : `/api/operators`;
+const operatorRequest = process.env.DEV_MODE ? `${serverURL}` : `/api/operator`;
 const latestOlmVersionRequest = 'https://api.github.com/repos/operator-framework/operator-lifecycle-manager/releases';
 
+const OPERATORS = []
+
 export const fetchOperator = (packageName: string, channel?: string, operatorName?: string) => (dispatch: IDispatch)  => {
+  console.log(packageName, channel, operatorName)
+
   dispatch({
     type: PENDING_ACTION(reduxConstants.GET_OPERATORS)
   });
@@ -24,12 +28,20 @@ export const fetchOperator = (packageName: string, channel?: string, operatorNam
       packageName
     }
   };
+
   axios
     .get(operatorRequest, config)
     .then(response => {
+
+      const { operators } = response.data;
+
+      const operator = operators.filter((op) => op.packageName.toLowerCase() === (packageName && packageName.toLowerCase()));
+
+      console.log("operator", operator[0])
+
       dispatch({
         type: FULFILLED_ACTION(reduxConstants.GET_OPERATOR),
-        payload: response.data.operator
+        payload: operator[0]
       });
     })
     .catch(e => {
@@ -71,7 +83,7 @@ export const fetchOperators = () => (dispatch: IDispatch) => {
       });
     })
     .catch(e => {
-      console.dir(e);
+       console.dir(e);
       dispatch({
         type: REJECTED_ACTION(reduxConstants.GET_OPERATORS),
         error: e
